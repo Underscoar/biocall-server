@@ -42,21 +42,25 @@ oscServer.on('message', function (msg) {
 /* Facereader */
 // Facereader connects to a middleman: Facereader client. Facereader client connects to Facreader itself and relays the data
 var faceReaderClient = null;
-faceReaderClient = new net.Socket();
 
-// Connect to the FaceReader client
-faceReaderClient.connect(faceReaderPort, host, function() {
-  console.log('Connection to FaceReader client opened successfully!');
-});
+function connectToFaceReader() {
+  faceReaderClient = new net.Socket();
+  faceReaderClient.connect(faceReaderPort, host, function() {
+    console.log('Connection to FaceReader client opened successfully! Listening for FaceReader data on port ' + faceReaderPort);
+  });
 
-faceReaderClient.on('error', function(err) {
-  // faceReaderClient.destroy();
-  // faceReaderClient = null;
-  console.log("ERROR: Connection could not be openend. Msg: %s", err.message);
-});
+  faceReaderClient.on('error', function(err) {
+    faceReaderClient.destroy();
+    faceReaderClient = null;
+    console.log("ERROR: Connection could not be openend. Msg: %s", err.message + ' -> trying again');
+    setTimeout(connectToFaceReader, 3000);
+  });
 
-faceReaderClient.on('data', function(data) {
-  console.log("Received: %s", data);
-  io.emit('faceReaderData', JSON.parse(data));
-});
+  faceReaderClient.on('data', function(data) {
+    console.log("Received: %s", data);
+    io.emit('faceReaderData', JSON.parse(data));
+  });
+}
+
+connectToFaceReader();
 /* ---------------------------------------------------------- */
