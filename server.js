@@ -14,8 +14,11 @@ console.log('Starting biocall server');
 /* Socket for connecting to webinterfaces for front-end */
 // Create Socket.io Socket and listen for data
 io.on('connection', client => {
+  console.log('Socket.io: Client connected on port ' + httpPort);
   client.on('event', data => { console.log(data); });
-  client.on('disconnect', () => { /* … */ });
+  client.on('disconnect', () => { console.log('Socket.io: Client disconnected on port ' + httpPort) });
+
+  client.on('connectFaceReader', data => { connectToFaceReader(data); });
 });
 
 // Start the Socket.io Socket Server
@@ -43,7 +46,7 @@ oscServer.on('message', function (msg) {
 // Facereader connects to a middleman: Facereader client. Facereader client connects to Facreader itself and relays the data
 var faceReaderClient = null;
 
-function connectToFaceReader() {
+function connectToFaceReader(clientIdOfzo) {
   faceReaderClient = new net.Socket();
   faceReaderClient.connect(faceReaderPort, host, function() {
     console.log('Connection to FaceReader client opened successfully! Listening for FaceReader data on port ' + faceReaderPort);
@@ -53,7 +56,8 @@ function connectToFaceReader() {
     faceReaderClient.destroy();
     faceReaderClient = null;
     console.log("ERROR: Connection could not be openend. Msg: %s", err.message + ' -> trying again');
-    setTimeout(connectToFaceReader, 3000);
+    io.emit(clientIdOfzo, "ERROR: Connection could not be openend. Msg: %s" + err.message + ' -> trying again');
+    setTimeout(connectToFaceReader, 3000, clientIdOfzo);
   });
 
   faceReaderClient.on('data', function(data) {
@@ -62,5 +66,5 @@ function connectToFaceReader() {
   });
 }
 
-connectToFaceReader();
+// connectToFaceReader();
 /* ---------------------------------------------------------- */
