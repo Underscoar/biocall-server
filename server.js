@@ -19,7 +19,18 @@ io.on('connection', client => {
   client.on('disconnect', () => { console.log('Socket.io: Client disconnected on port ' + httpPort) });
 
   client.on('connectFaceReader', data => { connectToFaceReader(data); });
+  client.on('spoofBorder', data => { spoofBorder(data) });
+  client.on('spoofValue', data => { spoofValue(data) });
 });
+
+function spoofBorder(bool) {
+  io.emit('spoofBorder', bool);
+  console.log('Started spoofing: ' + bool);
+}
+
+function spoofValue(data) {
+  io.emit('spoofValue', data);
+}
 
 // Start the Socket.io Socket Server
 http.listen(httpPort, function(){
@@ -55,8 +66,8 @@ function connectToFaceReader(clientIdOfzo) {
   faceReaderClient.on('error', function(err) {
     faceReaderClient.destroy();
     faceReaderClient = null;
-    console.log("ERROR: Connection could not be openend. Msg: %s", err.message + ' -> trying again');
-    io.emit(clientIdOfzo, "ERROR: Connection could not be openend. Msg: %s" + err.message + ' -> trying again');
+    console.log("ERROR: Connection could not be openend/reset. Msg: %s", err.message + ' -> trying again');
+    io.emit(clientIdOfzo, "ERROR: Connection could not be openend/reset. Msg: %s" + err.message + ' -> trying again');
     setTimeout(connectToFaceReader, 3000, clientIdOfzo);
   });
 
