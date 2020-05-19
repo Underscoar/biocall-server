@@ -3,10 +3,14 @@ const io = require('socket.io')(http); // The Socket.io server
 const { Server } = require('node-osc'); // The OSC server for receiving eSense data
 const net = require('net'); // The net server for receiving Facereader data
 
+const ConnectedClient = require('./ConnectedClient');
+
 const host = '127.0.0.1';
 const oscPort = 4559;
 const faceReaderPort = 8052;
 const httpPort = 4001;
+
+var clientData = [];
 
 console.log('Starting biocall server');
 
@@ -15,12 +19,26 @@ console.log('Starting biocall server');
 // Create Socket.io Socket and listen for data
 io.on('connection', client => {
   console.log('Socket.io: Client connected on port ' + httpPort);
+  console.log('Client id:' + client.id);
+
+  // Testroom for now. TODO: Host should make a room where Client can join and data is sent to only those two.
+  let clientRoom = 'testRoom';
+  client.join(clientRoom);
+  io.to(clientRoom).emit('testdata', 'enne');
+
   client.on('event', data => { console.log(data); });
-  client.on('disconnect', () => { console.log('Socket.io: Client disconnected on port ' + httpPort) });
+
+  client.on('disconnect', () => {
+    console.log('Socket.io: Client disconnected on port ' + httpPort);
+    delete clientData[client.id];
+  });
 
   client.on('connectFaceReader', data => { connectToFaceReader(data); });
-  client.on('spoofBorder', data => { spoofBorder(data) });
-  client.on('spoofValue', data => { spoofValue(data) });
+  // client.on('spoofBorder', data => { spoofBorder(data) });
+  // client.on('spoofValue', data => { spoofValue(data) });
+  clientData[client.id] = new ConnectedClient(client.id, clientRoom, {});
+  console.log(clientData);
+  sendDataToFrontEnd(client);
 });
 
 function spoofBorder(bool) {
@@ -30,6 +48,15 @@ function spoofBorder(bool) {
 
 function spoofValue(data) {
   io.emit('spoofValue', data);
+}
+
+function sendDataToFrontEnd(client) {
+  if (client.connected) {
+    // console.log(client.id);
+    let room = clientData[client.id].room;
+    io.to(room).emit('testdata', clientData[client.id].getBioData());
+    setTimeout(sendDataToFrontEnd, 1000, client);
+  }
 }
 
 // Start the Socket.io Socket Server
