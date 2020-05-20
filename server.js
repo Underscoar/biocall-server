@@ -24,7 +24,6 @@ io.on('connection', client => {
   // Testroom for now. TODO: Host should make a room where Client can join and data is sent to only those two.
   let clientRoom = 'testRoom';
   client.join(clientRoom);
-  io.to(clientRoom).emit('testdata', 'enne');
 
   client.on('event', data => { console.log(data); });
 
@@ -36,9 +35,9 @@ io.on('connection', client => {
   client.on('connectFaceReader', data => { connectToFaceReader(data); });
   // client.on('spoofBorder', data => { spoofBorder(data) });
   // client.on('spoofValue', data => { spoofValue(data) });
-  clientData[client.id] = new ConnectedClient(client.id, clientRoom, {});
+  clientData[clientRoom] = new ConnectedClient(client.id, clientRoom, {});
   console.log(clientData);
-  sendDataToFrontEnd(client);
+  sendDataToFrontEnd(clientRoom, client);
 });
 
 function spoofBorder(bool) {
@@ -50,12 +49,11 @@ function spoofValue(data) {
   io.emit('spoofValue', data);
 }
 
-function sendDataToFrontEnd(client) {
+function sendDataToFrontEnd(room, client) {
   if (client.connected) {
     // console.log(client.id);
-    let room = clientData[client.id].room;
-    io.to(room).emit('testdata', clientData[client.id].getBioData());
-    setTimeout(sendDataToFrontEnd, 1000, client);
+    io.to(room).emit('bioData', clientData[room].getBioData());
+    setTimeout(sendDataToFrontEnd, 1000, room, client);
   }
 }
 
@@ -74,7 +72,9 @@ console.log('Listening for OSC data on port ' + oscPort);
 oscServer.on('message', function (msg) {
   if (msg[0] != '/time') {
     //emits the OSC data in the io Socket to the front-end
-    io.emit('eSenseData', msg);
+    // io.emit('eSenseData', msg);
+    console.log(msg);
+    clientData['testRoom'].setBioData({gsr: msg[1]});
   }
 });
 /* ---------------------------------------------------------- */
