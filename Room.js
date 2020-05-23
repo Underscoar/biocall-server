@@ -10,6 +10,10 @@ class Room {
     this.bioData.gsr = val;
   }
 
+  setFaceReaderData(val) {
+    this.bioData.faceReader = val;
+  }
+
   getBioData() {
     return this.bioData;
   }

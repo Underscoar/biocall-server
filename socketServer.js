@@ -48,23 +48,31 @@ io.on('connection', client => {
 
   client.on('eSenseData', data => {
      console.log(data);
-     console.log(client.rooms);
      let room = Object.keys(client.rooms)[1].replace('-data', '');
      roomData[room].setGSRData(data);
   });
 
+  client.on('faceReaderData', data => {
+    console.log(data);
+    let room = Object.keys(client.rooms)[1].replace('-data', '');
+    roomData[room].setFaceReaderData(data);
+  })
+
   client.on('disconnecting', () => {
+    let room;
+    //TODO delete room when empty
     console.log(client.rooms);
     let curRoom = Object.keys(client.rooms)[1];
     if (curRoom.endsWith('-data')) {
-      let room = curRoom.replace('-data', '');
+      room = curRoom.replace('-data', '');
       roomData[room].leaveAsDataSource(client.id);
     }
 
     else {
-      let room = curRoom;
+      room = curRoom;
       roomData[room].leaveAsClient(client.id);
     }
+    checkRoom(room);
     console.log('Socket.io: Client disconnected on port ' + httpPort);
     console.log(roomData);
   });
@@ -72,13 +80,19 @@ io.on('connection', client => {
 
 
 function createRoom(room) {
-  roomData[room] = new Room(room, {});
+  roomData[room] = new Room(room, {gsr: '0', facereader:{}});
 }
 
 function sendData(room, client) {
   if (client.connected) {
     io.to(room).emit('bioData', roomData[room].getBioData());
     setTimeout(sendData, 1000, room, client);
+  }
+}
+
+function checkRoom(room) {
+  if (roomData[room].connectedClients.length==0 && roomData[room].connectedDataSources.length==0) {
+    delete roomData[room];
   }
 }
 
