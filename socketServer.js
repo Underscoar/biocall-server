@@ -18,6 +18,19 @@ io.on('connection', client => {
   console.log('Socket.io: Client connected on port ' + httpPort);
   console.log('Client id: ' + client.id);
 
+
+
+
+
+
+  client.on('spoofBorder', data => { spoofBorder(data) });
+  client.on('spoofValue', data => { spoofValue(data) });
+
+
+
+
+
+
   client.on('roomRequest', roomRequest => {
     if (roomRequest.endsWith('-data')) {
       // DataSource is trying to connect
@@ -79,8 +92,30 @@ io.on('connection', client => {
 });
 
 
+
+
+
+
+// ------------ SPOOFING ---------------
+function spoofBorder(bool) {
+  io.emit('spoofBorder', bool);
+  console.log('Started spoofing: ' + bool);
+}
+
+function spoofValue(data) {
+  io.emit('spoofValue', data);
+}
+//-------------------------------------------------
+
+
+
+
+
+
+
+
 function createRoom(room) {
-  roomData[room] = new Room(room, {gsr: '0', facereader:{}});
+  roomData[room] = new Room(room, {gsr: '0', gsrHistory: {minVal:0, maxVal:1}, facereader:{}});
 }
 
 function sendData(room, client) {

@@ -8,6 +8,12 @@ class Room {
 
   setGSRData(val) {
     this.bioData.gsr = val;
+    let num = parseFloat(val);
+    let maxVal = this.bioData.gsrHistory.maxVal;
+    console.log('Maxval: ' + maxVal + ' num: ' + num);
+    if (num > maxVal) {
+      this.bioData.gsrHistory.maxVal = num;
+    }
   }
 
   setFaceReaderData(val) {
