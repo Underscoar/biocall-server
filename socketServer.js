@@ -25,6 +25,8 @@ io.on('connection', client => {
 
   client.on('spoofBorder', data => { spoofBorder(data) });
   client.on('spoofValue', data => { spoofValue(data) });
+  client.on('spoofGSR', data => { spoofGSR(data, client) });
+  client.on('changeGSR', data => { changeGSR(data, client) });
 
 
 
@@ -39,8 +41,10 @@ io.on('connection', client => {
         createRoom(room);
       }
       roomData[room].joinAsDataSource(client.id);
+      roomData[room].AddConnectedUser();
 
       client.join(roomRequest);
+
       console.log('DataSource connected');
     }
     else {
@@ -53,7 +57,9 @@ io.on('connection', client => {
 
       client.join(roomRequest);
       console.log('Front-end client connected');
-      sendData(room, client);
+      if (roomData[room].connectedClients.length == 1) {
+        sendData(room, client);
+      }
     }
     console.log(roomData);
     io.to(roomRequest).emit('message', 'Connected to room: ' + roomRequest);
@@ -66,7 +72,7 @@ io.on('connection', client => {
   });
 
   client.on('faceReaderData', data => {
-    console.log(data);
+    // console.log(data);
     let room = Object.keys(client.rooms)[1].replace('-data', '');
     roomData[room].setFaceReaderData(data);
   })
@@ -74,6 +80,8 @@ io.on('connection', client => {
   client.on('disconnecting', () => {
     let room;
     //TODO delete room when empty
+    //Code below needs fixing, works 99% of the time, but sometimes crashes when client disconnects. For now commented
+
     console.log(client.rooms);
     let curRoom = Object.keys(client.rooms)[1];
     if (curRoom.endsWith('-data')) {
@@ -105,6 +113,17 @@ function spoofBorder(bool) {
 function spoofValue(data) {
   io.emit('spoofValue', data);
 }
+
+function spoofGSR(bool, client) {
+  console.log('Spoofing GSR data: ' + bool);
+  let room = Object.keys(client.rooms)[1];
+  roomData[room].toggleSpoofGSR(bool);
+}
+
+function changeGSR(data, client) {
+  let room = Object.keys(client.rooms)[1];
+  roomData[room].setGSRSpoofValue(parseFloat(data));
+}
 //-------------------------------------------------
 
 
@@ -115,13 +134,59 @@ function spoofValue(data) {
 
 
 function createRoom(room) {
-  roomData[room] = new Room(room, {gsr: '0', gsrHistory: {minVal:0, maxVal:1}, facereader:{}});
+  roomData[room] = new Room(room, {
+    gsr: '0',
+    gsrHistory: {
+      minVal:0,
+      maxVal:1
+    },
+    faceReaderHRHistory: {
+      minVal: 0,
+      maxVal: 60
+    },
+    faceReader:{
+      "Heart Rate": 60,
+      "Neutral": 0,
+      "Happy": 0,
+      "Sad": 0,
+      "Angry": 0,
+      "Surprised": 0,
+      "Disgusted": 0,
+      "Scared": 0,
+      "Action Unit 04 - Brow Lowerer": "NotActive",
+      "Action Unit 23 - Lip Tightener": "NotActive",
+      "Action Unit 24 - Lip Pressor": "NotActive"
+    }
+  });
 }
 
 function sendData(room, client) {
   if (client.connected) {
-    io.to(room).emit('bioData', roomData[room].getBioData());
-    setTimeout(sendData, 1000, room, client);
+    let bioData = roomData[room].getBioData();
+    if (roomData[room].spoofGSR === false) {
+      io.to(room).emit('bioData', bioData);
+    }
+    else {
+      let spoofedInput = roomData[room].spoofedValue;
+      let maxTop = spoofedInput+0.1;
+      let minTop = spoofedInput-0.1;
+      let randVal = Math.random() * (maxTop - minTop) + minTop;
+      bioData.gsr = randVal.toFixed(2);
+      roomData[room].spoofGSRData((parseFloat(bioData.gsr)));
+
+      let spoofedHR = roomData[room].spoofedValue*5;
+      spoofedHR = spoofedHR+60;
+      let maxTopHR = spoofedHR+2;
+      let minTopHR = spoofedHR-2;
+      let randValHR = Math.random() * (maxTopHR - minTopHR) + minTopHR;
+      bioData.faceReader['Heart Rate'] = randValHR.toFixed(2);
+      roomData[room].spoofHRData((parseFloat(bioData.faceReader['Heart Rate'])));
+
+      io.to(room).emit('bioData', bioData);
+    }
+    if (roomData[room].NoOfConnectedUsers > 0) {
+      setTimeout(sendData, 1000, room, client)
+    }
   }
 }
 
