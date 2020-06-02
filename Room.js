@@ -42,9 +42,30 @@ class Room {
       // this.spoofedValue = val;
       let num = parseFloat(val);
       let maxVal = this.bioData.faceReaderHRHistory.maxVal;
-      console.log('Maxval: ' + maxVal + ' num: ' + num);
+      // console.log('Maxval: ' + maxVal + ' num: ' + num);
       if (num > maxVal) {
         this.bioData.faceReaderHRHistory.maxVal = num;
+      }
+    }
+  }
+
+  spoofHRVData(val) {
+    if (this.spoofGSR === true) {
+      // this.spoofedValue = val;
+      let num = parseFloat(val);
+      let maxVal = this.bioData.faceReaderHRVHistory.maxVal;
+      // console.log('Maxval: ' + maxVal + ' num: ' + num);
+      if (num > maxVal) {
+        this.bioData.faceReaderHRVHistory.maxVal = num;
+      }
+    }
+  }
+
+  setActionUnit(actionUnit, val) {
+    if (this.spoofGSR === true) {
+      this.bioData.faceReader[actionUnit] = val;
+      if (val != 'NotActive') {
+        setTimeout(this.setActionUnit, 2000, actionUnit, 'NotActive');
       }
     }
   }

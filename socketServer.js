@@ -27,6 +27,7 @@ io.on('connection', client => {
   client.on('spoofValue', data => { spoofValue(data) });
   client.on('spoofGSR', data => { spoofGSR(data, client) });
   client.on('changeGSR', data => { changeGSR(data, client) });
+  client.on('spoofActionUnit', data => { spoofActionUnit(data, client) });
 
 
 
@@ -124,6 +125,16 @@ function changeGSR(data, client) {
   let room = Object.keys(client.rooms)[1];
   roomData[room].setGSRSpoofValue(parseFloat(data));
 }
+
+function spoofActionUnit(data, client) {
+  let room = Object.keys(client.rooms)[1];
+  let actionUnit;
+  if (data == '4') {
+    actionUnit = 'Action Unit 04 - Brow Lowerer';
+    roomData[room].setActionUnit(actionUnit, 'A');
+  }
+  roomData[room]
+}
 //-------------------------------------------------
 
 
@@ -144,8 +155,13 @@ function createRoom(room) {
       minVal: 0,
       maxVal: 60
     },
+    faceReaderHRVHistory: {
+      minVal: 0,
+      maxVal: 0.200
+    },
     faceReader:{
       "Heart Rate": 60,
+      "Heart Rate Var": 0.180,
       "Neutral": 0,
       "Happy": 0,
       "Sad": 0,
@@ -174,13 +190,26 @@ function sendData(room, client) {
       bioData.gsr = randVal.toFixed(2);
       roomData[room].spoofGSRData((parseFloat(bioData.gsr)));
 
-      let spoofedHR = roomData[room].spoofedValue*5;
-      spoofedHR = spoofedHR+60;
-      let maxTopHR = spoofedHR+2;
-      let minTopHR = spoofedHR-2;
-      let randValHR = Math.random() * (maxTopHR - minTopHR) + minTopHR;
-      bioData.faceReader['Heart Rate'] = randValHR.toFixed(2);
-      roomData[room].spoofHRData((parseFloat(bioData.faceReader['Heart Rate'])));
+      // Heart Rate spoofing
+      // let spoofedHR = roomData[room].spoofedValue*5;
+      // spoofedHR = spoofedHR+60;
+      // let maxTopHR = spoofedHR+2;
+      // let minTopHR = spoofedHR-2;
+      // let randValHR = Math.random() * (maxTopHR - minTopHR) + minTopHR;
+      // bioData.faceReader['Heart Rate'] = randValHR.toFixed(2);
+      // roomData[room].spoofHRData((parseFloat(bioData.faceReader['Heart Rate'])));
+
+      // Heart Rate Variability spoofing
+      let minHRV = 0.02;
+      let maxHRV = 0.2;
+      // fx = x/20+0.02
+      let spoofedHRV = (6 - roomData[room].spoofedValue)/20;
+      let maxTopHRV = spoofedHRV+0.01;
+      let minTopHRV = spoofedHRV-0.01;
+      let randValHRV = Math.random() * (maxTopHRV - minTopHRV) + minTopHRV;
+      bioData.faceReader['Heart Rate Var'] = randValHRV.toFixed(3);
+      roomData[room].spoofHRVData((parseFloat(bioData.faceReader['Heart Rate Var'])));
+      // console.log(spoofedHRV);
 
       io.to(room).emit('bioData', bioData);
     }
