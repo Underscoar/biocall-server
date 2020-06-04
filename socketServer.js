@@ -28,6 +28,7 @@ io.on('connection', client => {
   client.on('spoofGSR', data => { spoofGSR(data, client) });
   client.on('changeGSR', data => { changeGSR(data, client) });
   client.on('spoofActionUnit', data => { spoofActionUnit(data, client) });
+  client.on('setActionUnitsWrap', data => { setActionUnitsWrap(data, client) });
 
 
 
@@ -82,17 +83,21 @@ io.on('connection', client => {
     let room;
     //TODO delete room when empty
     //Code below needs fixing, works 99% of the time, but sometimes crashes when client disconnects. For now commented
+    try {
+      console.log(client.rooms);
+      let curRoom = Object.keys(client.rooms)[1];
+      if (curRoom.endsWith('-data')) {
+        room = curRoom.replace('-data', '');
+        roomData[room].leaveAsDataSource(client.id);
+      }
 
-    console.log(client.rooms);
-    let curRoom = Object.keys(client.rooms)[1];
-    if (curRoom.endsWith('-data')) {
-      room = curRoom.replace('-data', '');
-      roomData[room].leaveAsDataSource(client.id);
+      else {
+        room = curRoom;
+        roomData[room].leaveAsClient(client.id);
+      }
     }
-
-    else {
-      room = curRoom;
-      roomData[room].leaveAsClient(client.id);
+    catch(err) {
+      console.log(err);
     }
     checkRoom(room);
     console.log('Socket.io: Client disconnected on port ' + httpPort);
@@ -126,14 +131,21 @@ function changeGSR(data, client) {
   roomData[room].setGSRSpoofValue(parseFloat(data));
 }
 
+function setActionUnitsWrap(data,client) {
+  console.log('DISPLAY ACTION UNITS: ' + data);
+  let room = Object.keys(client.rooms)[1];
+  io.to(room).emit('setActionUnitsWrap', data);
+}
+
 function spoofActionUnit(data, client) {
   let room = Object.keys(client.rooms)[1];
-  let actionUnit;
-  if (data == '4') {
-    actionUnit = 'Action Unit 04 - Brow Lowerer';
-    roomData[room].setActionUnit(actionUnit, 'A');
-  }
-  roomData[room]
+  // let actionUnit;
+  // if (data == '4') {
+  //   actionUnit = 'Action Unit 04 - Brow Lowerer';
+  //   roomData[room].setActionUnit(actionUnit, 'A');
+  // }
+  // roomData[room]
+  io.to(room).emit('spoofActionUnit', data);
 }
 //-------------------------------------------------
 

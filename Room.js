@@ -14,7 +14,7 @@ class Room {
       this.bioData.gsr = val;
       let num = parseFloat(val);
       let maxVal = this.bioData.gsrHistory.maxVal;
-      console.log('Maxval: ' + maxVal + ' num: ' + num);
+      // console.log('Maxval: ' + maxVal + ' num: ' + num);
       if (num > maxVal) {
         this.bioData.gsrHistory.maxVal = num;
       }
