@@ -32,6 +32,10 @@ io.on('connection', client => {
 
 
 
+  client.on('showToClientBorder', data => {setClientShowing('Border', data, client)})
+  client.on('showToClientStress', data => {setClientShowing('Stress', data, client)})
+  client.on('showToClientHR', data => {setClientShowing('HR', data, client)})
+
 
 
 
@@ -108,8 +112,6 @@ io.on('connection', client => {
 
 
 
-
-
 // ------------ SPOOFING ---------------
 function spoofBorder(bool) {
   io.emit('spoofBorder', bool);
@@ -151,7 +153,10 @@ function spoofActionUnit(data, client) {
 
 
 
-
+function setClientShowing(element, value, client) {
+  let room = Object.keys(client.rooms)[1];
+  io.to(room).emit('showToClient' + element, value);
+}
 
 
 
@@ -240,4 +245,9 @@ function checkRoom(room) {
 // Start the Socket.io Socket Server
 http.listen(httpPort, function(){
   console.log('Listening for HTTP requests for Socket.io on port ' + httpPort);
+});
+
+
+process.on('uncaughtException', function (err) {
+  console.error(err);
 });
