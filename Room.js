@@ -30,7 +30,7 @@ class Room {
       // this.spoofedValue = val;
       let num = parseFloat(val);
       let maxVal = this.bioData.gsrHistory.maxVal;
-      console.log('Maxval: ' + maxVal + ' num: ' + num);
+      // console.log('Maxval: ' + maxVal + ' num: ' + num);
       if (num > maxVal) {
         this.bioData.gsrHistory.maxVal = num;
       }
@@ -65,7 +65,9 @@ class Room {
     if (this.spoofGSR === true) {
       this.bioData.faceReader[actionUnit] = val;
       if (val != 'NotActive') {
-        setTimeout(this.setActionUnit, 2000, actionUnit, 'NotActive');
+        setTimeout(() => {
+          this.setActionUnit(actionUnit, 'NotActive');
+        }, 1000);
       }
     }
   }
