@@ -86,7 +86,7 @@ io.on('connection', client => {
   client.on('disconnecting', () => {
     let room;
     //TODO delete room when empty
-    //Code below needs fixing, works 99% of the time, but sometimes crashes when client disconnects. For now commented
+    //Code below needs fixing, works 99% of the time, but sometimes crashes when client disconnects.
     try {
       console.log(client.rooms);
       let curRoom = Object.keys(client.rooms)[1];
