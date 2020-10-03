@@ -14,7 +14,6 @@ class Room {
       this.bioData.gsr = val;
       let num = parseFloat(val);
       let maxVal = this.bioData.gsrHistory.maxVal;
-      // console.log('Maxval: ' + maxVal + ' num: ' + num);
       if (num > maxVal) {
         this.bioData.gsrHistory.maxVal = num;
       }
@@ -27,10 +26,8 @@ class Room {
 
   spoofGSRData(val) {
     if (this.spoofGSR === true) {
-      // this.spoofedValue = val;
       let num = parseFloat(val);
       let maxVal = this.bioData.gsrHistory.maxVal;
-      // console.log('Maxval: ' + maxVal + ' num: ' + num);
       if (num > maxVal) {
         this.bioData.gsrHistory.maxVal = num;
       }
@@ -39,10 +36,8 @@ class Room {
 
   spoofHRData(val) {
     if (this.spoofGSR === true) {
-      // this.spoofedValue = val;
       let num = parseFloat(val);
       let maxVal = this.bioData.faceReaderHRHistory.maxVal;
-      // console.log('Maxval: ' + maxVal + ' num: ' + num);
       if (num > maxVal) {
         this.bioData.faceReaderHRHistory.maxVal = num;
       }
@@ -51,10 +46,8 @@ class Room {
 
   spoofHRVData(val) {
     if (this.spoofGSR === true) {
-      // this.spoofedValue = val;
       let num = parseFloat(val);
       let maxVal = this.bioData.faceReaderHRVHistory.maxVal;
-      // console.log('Maxval: ' + maxVal + ' num: ' + num);
       if (num > maxVal) {
         this.bioData.faceReaderHRVHistory.maxVal = num;
       }
@@ -82,7 +75,6 @@ class Room {
     if (this.spoofGSR === false) {
       if (val['Neutral'] != undefined) {
         console.log(val);
-        // this.bioData.faceReader = val;
         if (val['Heart Rate'] != 'Unknown') {
           this.bioData.faceReader['Heart Rate'] = val['Heart Rate'];
         }

@@ -78,15 +78,12 @@ io.on('connection', client => {
   });
 
   client.on('faceReaderData', data => {
-    // console.log(data);
     let room = Object.keys(client.rooms)[1].replace('-data', '');
     roomData[room].setFaceReaderData(data);
   })
 
   client.on('disconnecting', () => {
     let room;
-    //TODO delete room when empty
-    //Code below needs fixing, works 99% of the time, but sometimes crashes when client disconnects.
     try {
       console.log(client.rooms);
       let curRoom = Object.keys(client.rooms)[1];
@@ -166,11 +163,11 @@ function createRoom(room) {
     gsr: '0',
     gsrHistory: {
       minVal:0,
-      maxVal:1
+      maxVal:4
     },
     faceReaderHRHistory: {
       minVal: 0,
-      maxVal: 60
+      maxVal: 100
     },
     faceReaderHRVHistory: {
       minVal: 0,
@@ -215,18 +212,6 @@ function sendData(room, client) {
       let randValHR = Math.random() * (maxTopHR - minTopHR) + minTopHR;
       bioData.faceReader['Heart Rate'] = randValHR.toFixed(2);
       roomData[room].spoofHRData((parseFloat(bioData.faceReader['Heart Rate'])));
-
-      // Heart Rate Variability spoofing
-      // let minHRV = 0.02;
-      // let maxHRV = 0.2;
-      // // fx = x/20+0.02
-      // let spoofedHRV = (6 - roomData[room].spoofedValue)/20;
-      // let maxTopHRV = spoofedHRV+0.01;
-      // let minTopHRV = spoofedHRV-0.01;
-      // let randValHRV = Math.random() * (maxTopHRV - minTopHRV) + minTopHRV;
-      // bioData.faceReader['Heart Rate Var'] = randValHRV.toFixed(3);
-      // roomData[room].spoofHRVData((parseFloat(bioData.faceReader['Heart Rate Var'])));
-      // console.log(spoofedHRV);
 
       io.to(room).emit('bioData', bioData);
     }
